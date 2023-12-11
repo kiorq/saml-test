@@ -53,13 +53,28 @@ export const useSpeechEngine = (): SpeechEngine => {
 };
 
 export const textToSSML = (text: string): SSML => {
-  let ssml = text
-    .replace(/,/g, '<break time="300ms" />')
-    .replace(/(\?)/g, '<prosody rate="slow">$1</prosody>')
-    .replace(/([A-Z]{2,})/g, '<say-as interpret-as="characters">$1</say-as>')
-    .replace(/(([A-Z]\.){2,})/g, '<emphasis level="strong">$1</emphasis>');
+  let ssml = "<speak>";
 
-  return `<speak>${ssml}</speak>`;
+  // Split text into sentences using a regular expression
+  const sentences = text.match(/[^\.!\?]+[\.!\?]+/g);
+  if (sentences) {
+    sentences.forEach((sentence) => {
+      // Example: Adding a pause after commas
+      let ssmlSentence = sentence.replace(/,/g, ',<break time="500ms"/>');
+
+      // Example: Adding emphasis on words that are in all caps
+      ssmlSentence = ssmlSentence.replace(
+        /\b([A-Z]{2,})\b/g,
+        '<emphasis level="strong">$1</emphasis>'
+      );
+
+      // Add the processed sentence to the SSML string
+      ssml += `<p>${ssmlSentence}</p>`;
+    });
+  }
+
+  ssml += "</speak>";
+  return ssml;
 };
 
 export const ssmlAudioUrl = (ssml: SSML) => {
