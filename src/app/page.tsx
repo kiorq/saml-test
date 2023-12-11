@@ -11,9 +11,9 @@ type SpeakingId = FormSpeakingId | number;
 const getSSMLById = (id: number) => "";
 
 export default function Home() {
-  const { speak, pause, isSpeaking } = useSpeechEngine();
+  const { loadSSML, play, pause, isSpeaking } = useSpeechEngine();
   const [input, setInput] = useState<string>("");
-  const [speakingId, setSpeakingId] = useState<SpeakingId>(0);
+  // const [speakingId, setSpeakingId] = useState<SpeakingId>(0);
 
   // this store the value of the form in state
   const onInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -24,10 +24,12 @@ export default function Home() {
   const onToggleSpeakInput = useCallback(() => {
     if (isSpeaking) {
       pause();
+    } else {
+      // setSpeakingId(0); // sir... the form is speaking
+      loadSSML(textToSSML(input));
+      play();
     }
-    setSpeakingId(0); // sir... the form is speaking
-    speak(textToSSML(input));
-  }, [isSpeaking, pause, speak, input]);
+  }, [isSpeaking, pause, play, loadSSML, input]);
 
   // const isSpeakingById = useCallback(
   //   (id: number) => isSpeaking && speakingId == id,
@@ -70,7 +72,10 @@ export default function Home() {
             defaultValue={input}
           />
           <div className="tw-w-full tw-flex tw-flex-row tw-gap-3">
-            <Button text="Play" onClick={onToggleSpeakInput} />
+            <Button
+              text={isSpeaking ? "Pause" : "Speak"}
+              onClick={onToggleSpeakInput}
+            />
             <Button text="Save" onClick={() => {}} />
           </div>
         </form>
