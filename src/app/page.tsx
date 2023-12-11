@@ -4,10 +4,11 @@ import React, { useCallback, useState } from "react";
 import Button from "@/components/Button";
 import SavedItem from "@/components/SavedItem";
 import { textToSSML, useSpeechEngine } from "@/lib/ssml";
-import { useSavedItems } from "@/lib/storage";
+import { Item, useSavedItems } from "@/lib/storage";
 
 export default function Home() {
   const { loadSSML, play, pause, isSpeaking } = useSpeechEngine();
+  const [speakingId, setSpeakingId] = useState(0); // 0 for form
   const { items, addItem } = useSavedItems();
   const [input, setInput] = useState<string>("");
 
@@ -17,12 +18,13 @@ export default function Home() {
   };
 
   // this toggles speak of the input in the form
-  const onToggleSpeakInput = useCallback(() => {
+  const onToggleSpeakFormInput = useCallback(() => {
     if (isSpeaking) {
       pause();
     } else {
       loadSSML(textToSSML(input));
       play();
+      setSpeakingId(0);
     }
   }, [isSpeaking, pause, play, loadSSML, input]);
   // add data in form to saved items storage
@@ -32,6 +34,33 @@ export default function Home() {
       ssml: textToSSML(input),
     });
   }, [input, addItem]);
+
+  const makeToggleSpeakSavedItemHandler = useCallback(
+    (item: Item) => {
+      return () => {
+        // we can play a saved item for the first time (expected: play)
+        // pause the same item that was played (expected: pause)
+        // play a second item while one is already playing (expected: pause & play)
+        // play a second item while nothing is play (expected: play)
+
+        if (speakingId == item.id) {
+          // toggling same item
+          if (!isSpeaking) {
+            setSpeakingId(item.id);
+            play();
+          } else if (isSpeaking) {
+            pause();
+          }
+        } else {
+          pause();
+          loadSSML(item.ssml);
+          play();
+          setSpeakingId(item.id);
+        }
+      };
+    },
+    [isSpeaking, speakingId, pause, loadSSML, play]
+  );
 
   return (
     <>
@@ -52,8 +81,8 @@ export default function Home() {
           />
           <div className="tw-w-full tw-flex tw-flex-row tw-gap-3">
             <Button
-              text={isSpeaking ? "Pause" : "Speak"}
-              onClick={onToggleSpeakInput}
+              text={isSpeaking && speakingId == 0 ? "Pause" : "Speak"}
+              onClick={onToggleSpeakFormInput}
             />
             <Button text="Save" onClick={onSave} />
           </div>
@@ -65,8 +94,8 @@ export default function Home() {
               <SavedItem
                 key={`saved-item-${item.id}`}
                 displayText={item.originalText}
-                isSpeaking={false}
-                toggleSpeak={() => {}}
+                isSpeaking={isSpeaking && speakingId == item.id}
+                toggleSpeak={makeToggleSpeakSavedItemHandler(item)}
               />
             ))}
           </ul>

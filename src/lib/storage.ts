@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const ITEM_NAME = "SAVED_ITEMS";
 
-interface Item {
+export interface Item {
   id: number;
   originalText: string;
   ssml: string;
@@ -15,7 +15,7 @@ interface SavedItemsHook {
 
 export const useSavedItems = (): SavedItemsHook => {
   const [items, setItems] = useState<Item[]>([]);
-  const lastItemId = items.length > 0 ? items[items.length - 1].id : 0;
+  const lastItemId = items.length > 0 ? items[0].id : 0;
 
   useEffect(() => {
     setItems(JSON.parse(localStorage.getItem(ITEM_NAME) || "[]"));
@@ -26,6 +26,5 @@ export const useSavedItems = (): SavedItemsHook => {
     setItems(updatedItems);
     localStorage.setItem(ITEM_NAME, JSON.stringify(updatedItems));
   };
-
   return { items, addItem };
 };
