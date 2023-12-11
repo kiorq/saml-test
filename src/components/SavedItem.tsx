@@ -1,10 +1,14 @@
 interface SavedItemProps {
-  isPlaying: boolean;
+  isSpeaking: boolean;
   toggleSpeak: () => void;
   displayText: string;
 }
 
-const SavedItem = ({ isPlaying, toggleSpeak, displayText }: SavedItemProps) => {
+const SavedItem = ({
+  isSpeaking,
+  toggleSpeak,
+  displayText,
+}: SavedItemProps) => {
   return (
     <li className="tw-w-full tw-bg-slate-100 tw-p-3 tw-rounded-lg tw-mb-2 last:tw-mb-0 tw-flex tw-flex-row tw-gap-3">
       <div>
@@ -12,7 +16,7 @@ const SavedItem = ({ isPlaying, toggleSpeak, displayText }: SavedItemProps) => {
           className="tw-bg-primary tw-p-2 tw-rounded-full tw-text-white focus:tw-opacity-70 hover:tw-opacity-90"
           onClick={toggleSpeak}
         >
-          {isPlaying ? (
+          {isSpeaking ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width={40}

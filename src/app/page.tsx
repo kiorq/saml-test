@@ -2,18 +2,14 @@
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 import Button from "@/components/Button";
-// import SavedItem from "@/components/SavedItem";
+import SavedItem from "@/components/SavedItem";
 import { textToSSML, useSpeechEngine } from "@/lib/ssml";
-
-type FormSpeakingId = 0;
-type SpeakingId = FormSpeakingId | number;
-
-const getSSMLById = (id: number) => "";
+import { useSavedItems } from "@/lib/storage";
 
 export default function Home() {
   const { loadSSML, play, pause, isSpeaking } = useSpeechEngine();
+  const { items, addItem } = useSavedItems();
   const [input, setInput] = useState<string>("");
-  // const [speakingId, setSpeakingId] = useState<SpeakingId>(0);
 
   // this store the value of the form in state
   const onInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -25,35 +21,18 @@ export default function Home() {
     if (isSpeaking) {
       pause();
     } else {
-      // setSpeakingId(0); // sir... the form is speaking
       loadSSML(textToSSML(input));
       play();
     }
   }, [isSpeaking, pause, play, loadSSML, input]);
+  // add data in form to saved items storage
+  const onSave = useCallback(() => {
+    addItem({
+      originalText: input,
+      ssml: textToSSML(input),
+    });
+  }, [input, addItem]);
 
-  // const isSpeakingById = useCallback(
-  //   (id: number) => isSpeaking && speakingId == id,
-  //   [speakingId, isSpeaking]
-  // );
-
-  // this handler that will toggle the speech engine
-  // const makeToggleSpeakSavedItemHandler = useCallback(
-  //   (id: number) => {
-  //     return () => {
-  //       if (isSpeaking) {
-  //         // stop speaking
-  //         pause();
-  //       }
-
-  //       if (!isSpeaking || speakingId != id) {
-  //         // user wants to speek
-  //         setSpeakingId(id);
-  //         speak(getSSMLById(id));
-  //       }
-  //     };
-  //   },
-  //   [isSpeaking, speakingId, pause, speak]
-  // );
   return (
     <>
       <nav className="tw-w-full tw-py-3 tw-flex tw-justify-center">
@@ -76,48 +55,26 @@ export default function Home() {
               text={isSpeaking ? "Pause" : "Speak"}
               onClick={onToggleSpeakInput}
             />
-            <Button text="Save" onClick={() => {}} />
+            <Button text="Save" onClick={onSave} />
           </div>
         </form>
 
-        {/* <ul>
-          <SavedItem
-            displayText="This is what the user save and we can replay it and pause it This
-              is what the user save and we can replay it and pause it This is
-              what the user save and we can replay it and pause it This is what
-              the user save and we can replay it and pause it This is what the
-              user save and we can replay it and pause it"
-            isPlaying={isSpeakingById(1)}
-            toggleSpeak={makeToggleSpeakSavedItemHandler(1)}
-          />
-          <SavedItem
-            displayText="This is what the user save and we can replay it and pause it This
-              is what the user save and we can replay it and pause it This is
-              what the user save and we can replay it and pause it This is what
-              the user save and we can replay it and pause it This is what the
-              user save and we can replay it and pause it"
-            isPlaying={isSpeakingById(1)}
-            toggleSpeak={makeToggleSpeakSavedItemHandler(1)}
-          />
-          <SavedItem
-            displayText="This is what the user save and we can replay it and pause it This
-              is what the user save and we can replay it and pause it This is
-              what the user save and we can replay it and pause it This is what
-              the user save and we can replay it and pause it This is what the
-              user save and we can replay it and pause it"
-            isPlaying={isSpeakingById(1)}
-            toggleSpeak={makeToggleSpeakSavedItemHandler(1)}
-          />
-          <SavedItem
-            displayText="This is what the user save and we can replay it and pause it This
-              is what the user save and we can replay it and pause it This is
-              what the user save and we can replay it and pause it This is what
-              the user save and we can replay it and pause it This is what the
-              user save and we can replay it and pause it"
-            isPlaying={isSpeakingById(1)}
-            toggleSpeak={makeToggleSpeakSavedItemHandler(1)}
-          />
-        </ul> */}
+        {items.length > 0 ? (
+          <ul>
+            {items.map((item) => (
+              <SavedItem
+                key={`saved-item-${item.id}`}
+                displayText={item.originalText}
+                isSpeaking={false}
+                toggleSpeak={() => {}}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="tw-text-center tw-text-dark tw-font-medium tw-py-8">
+            No Saved Items
+          </p>
+        )}
       </main>
     </>
   );
